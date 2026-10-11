@@ -16,7 +16,7 @@
  *  • WorkerHandle / FarmSpec — types consumed by the multitask layer.
  */
 
-import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
+import type { ExtensionToolContext } from "@earendil-works/pi-coding-agent";
 
 /** Zellij pane id, e.g. `"terminal_3"`, `"plugin_7"`. Branded for clarity. */
 export type PaneId = string & { readonly __brand: "PaneId" };
@@ -28,11 +28,16 @@ export type TabId = string & { readonly __brand: "TabId" };
 export type SessionName = string;
 
 /**
- * Per-tool context — pi's ExtensionContext plus the transport handle so
- * every tool gets a consistent way to invoke the CLI. See
- * `src/transport/cli.ts` for the underlying `runZellij` shape.
+ * Per-tool context — pi's `ExtensionToolContext` (which itself extends
+ * `ExtensionContext` and adds `tools`, `executeTool`, etc.) plus the
+ * transport handle so every tool gets a consistent way to invoke the
+ * CLI. See `src/transport/cli.ts` for the underlying `runZellij` shape.
+ *
+ * Every `execute()` in `src/tools/**` should type its `ctx` as
+ * `ZjToolContext`, not `ExtensionToolContext`, so the transport is
+ * reachable without a separate import.
  */
-export interface ZjToolContext extends ExtensionContext {
+export interface ZjToolContext extends ExtensionToolContext {
   /** Override session name for this call (empty = current session). */
   session?: SessionName;
   /**

@@ -1,7 +1,7 @@
 {
   "name": "zellij-agent-bridge",
   "version": "0.0.0-scaffold",
-  "description": "Pi extension that gives agents full programmatic control of the zellij terminal multiplexer — every action, every session command, plus pane streaming — so they can multitask.",
+  "description": "Pi extension that gives agents full programmatic control of the public zellij CLI / `zellij action` surface — every action, every session command, plus pane streaming — so they can multitask across parallel worker panes.",
   "license": "MIT",
   "type": "module",
   "main": "./src/extension.ts",
@@ -30,13 +30,21 @@
     ]
   },
   "peerDependencies": {
-    "@earendil-works/pi-coding-agent": "*",
-    "@earendil-works/pi-ai": "*",
-    "typebox": "*"
+    "@earendil-works/pi-coding-agent": "^1.1.0",
+    "@earendil-works/pi-ai": "^1.1.0",
+    "typebox": "^1.3.27"
   },
   "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^1.1.0",
+    "@earendil-works/pi-ai": "^1.1.0",
+    "typebox": "^1.3.27",
     "@types/node": "^22.0.0",
     "typescript": "^5.6.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --experimental-strip-types tests/*.test.ts",
+    "test:fake": "ZJ_BRIDGE_FAKE=1 node --test --experimental-strip-types tests/*.test.ts"
   },
   "engines": {
     "node": ">=20"
