@@ -23,10 +23,10 @@
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { probeZellij } from "./transport/probe.js";
-import { registerAllTools } from "./tools/index.js";
-import { log } from "./util/log.js";
-import { SYSTEM_PROMPT_PREAMBLE, TOOL_SNIPPET } from "./prompts.js";
+import { probeZellij } from "./transport/probe.ts";
+import { registerAllTools } from "./tools/index.ts";
+import { log } from "./util/log.ts";
+import { SYSTEM_PROMPT_PREAMBLE, TOOL_SNIPPET } from "./prompts.ts";
 
 export default async function (pi: ExtensionAPI): Promise<void> {
   // 1. Probe for zellij. Failure is non-fatal — the doctor tool will

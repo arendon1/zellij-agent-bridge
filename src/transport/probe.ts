@@ -12,8 +12,8 @@
  * PATH.
  */
 
-import { spawnSafe } from "../util/spawn.js";
-import { log } from "../util/log.js";
+import { spawnSafe } from "../util/spawn.ts";
+import { log } from "../util/log.ts";
 
 export interface ProbeState {
   available: boolean;

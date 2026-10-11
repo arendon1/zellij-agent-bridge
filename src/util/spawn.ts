@@ -19,7 +19,7 @@
  */
 
 import { spawn } from "node:child_process";
-import { log } from "./log.js";
+import { log } from "./log.ts";
 
 export interface SpawnResult {
   stdout: Buffer;

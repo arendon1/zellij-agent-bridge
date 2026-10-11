@@ -19,19 +19,19 @@ import {
   defineTool,
   type ExtensionAPI,
 } from "@earendil-works/pi-coding-agent";
-import { probeZellij, isZellijAvailable, MIN_ZELLIJ_VERSION, type ProbeState } from "../transport/probe.js";
-import { log } from "../util/log.js";
+import { probeZellij, isZellijAvailable, MIN_ZELLIJ_VERSION, type ProbeState } from "../transport/probe.ts";
+import { log } from "../util/log.ts";
 
 // Forward-declare category registrars — these will be filled in as the
 // respective phase lands.
-declare module "./session.js"   { export function registerSessionTools(pi: ExtensionAPI): void; }
-declare module "./query.js"     { export function registerQueryTools(pi: ExtensionAPI): void; }
-declare module "./subscribe.js" { export function registerSubscribeTool(pi: ExtensionAPI): void; }
-declare module "./pane.js"      { export function registerPaneTools(pi: ExtensionAPI): void; }
-declare module "./tab.js"       { export function registerTabTools(pi: ExtensionAPI): void; }
-declare module "./input.js"     { export function registerInputTools(pi: ExtensionAPI): void; }
-declare module "./layout.js"    { export function registerLayoutTools(pi: ExtensionAPI): void; }
-declare module "../multitask/farm.js" { export function registerMultitaskTools(pi: ExtensionAPI): void; }
+declare module "./session.ts"   { export function registerSessionTools(pi: ExtensionAPI): void; }
+declare module "./query.ts"     { export function registerQueryTools(pi: ExtensionAPI): void; }
+declare module "./subscribe.ts" { export function registerSubscribeTool(pi: ExtensionAPI): void; }
+declare module "./pane.ts"      { export function registerPaneTools(pi: ExtensionAPI): void; }
+declare module "./tab.ts"       { export function registerTabTools(pi: ExtensionAPI): void; }
+declare module "./input.ts"     { export function registerInputTools(pi: ExtensionAPI): void; }
+declare module "./layout.ts"    { export function registerLayoutTools(pi: ExtensionAPI): void; }
+declare module "../multitask/farm.ts" { export function registerMultitaskTools(pi: ExtensionAPI): void; }
 
 const DoctorParams = Type.Object({
   /** When true, re-run the probe (force probe zellij even if cached). */
@@ -120,21 +120,21 @@ export function registerAllTools(pi: ExtensionAPI): void {
   // crash the entire extension. As each phase lands, the corresponding
   // call here becomes real.
   try {
-    // TODO(phase 2): const { registerSessionTools } = await import("./session.js");
+    // TODO(phase 2): const { registerSessionTools } = await import("./session.ts");
     //                registerSessionTools(pi);
-    // TODO(phase 2): const { registerQueryTools } = await import("./query.js");
+    // TODO(phase 2): const { registerQueryTools } = await import("./query.ts");
     //                registerQueryTools(pi);
-    // TODO(phase 2): const { registerSubscribeTool } = await import("./subscribe.js");
+    // TODO(phase 2): const { registerSubscribeTool } = await import("./subscribe.ts");
     //                registerSubscribeTool(pi);
-    // TODO(phase 3): const { registerPaneTools } = await import("./pane.js");
+    // TODO(phase 3): const { registerPaneTools } = await import("./pane.ts");
     //                registerPaneTools(pi);
-    // TODO(phase 3): const { registerTabTools } = await import("./tab.js");
+    // TODO(phase 3): const { registerTabTools } = await import("./tab.ts");
     //                registerTabTools(pi);
-    // TODO(phase 3): const { registerInputTools } = await import("./input.js");
+    // TODO(phase 3): const { registerInputTools } = await import("./input.ts");
     //                registerInputTools(pi);
-    // TODO(phase 4): const { registerLayoutTools } = await import("./layout.js");
+    // TODO(phase 4): const { registerLayoutTools } = await import("./layout.ts");
     //                registerLayoutTools(pi);
-    // TODO(phase 5): const { registerMultitaskTools } = await import("../multitask/farm.js");
+    // TODO(phase 5): const { registerMultitaskTools } = await import("../multitask/farm.ts");
     //                registerMultitaskTools(pi);
     log.debug("category registrars not yet wired (phase 0 scaffold)");
   } catch (err) {

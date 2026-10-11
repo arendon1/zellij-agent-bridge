@@ -1,27 +1,46 @@
 /**
- * src/util/stream.ts — NDJSON line parser for `zellij subscribe` output
- * and the streaming variant of runZellij.
+ * src/util/stream.ts — NDJSON line parser.
  *
- * Two callers:
+ * Used by `runZellijStreaming` to turn the byte stream from a
+ * `zellij subscribe --format json` subprocess into a stream of parsed
+ * events. Also exported for tests and for any future tool that wants
+ * to subscribe directly.
  *
- *   1. `src/transport/cli.ts#runZellijStreaming` — yields parsed events
- *      from a long-running child. Uses an async iterable so the tool
- *      layer can `for await (const ev of stream)`.
- *
- *   2. `src/tools/subscribe.ts#zj_pane_subscribe` — wraps (1) and surfaces
- *      viewport events to the model via onUpdate.
- *
- * Implementation:
- *   • Use `readline.createInterface({ input: child.stdout })`.
- *   • For each non-empty line, JSON.parse and yield.
- *   • Treat `{ SubscribedPaneClosed: { pane_id } }` as terminal.
- *   • On child exit, flush any remaining buffer then close the iterator.
- *
- * Why NDJSON and not protobuf:
- *   `zellij subscribe --format json` is built-in and stable. The raw IPC
- *   stream is protobuf (see the research notes in docs/zellij-surface.md)
- *   but exposing that would mean shipping the proto file + a runtime,
- *   which is a v2 concern. The CLI NDJSON path is plenty fast for
- *   pane-state streams.
+ * The parser handles partial lines: if a chunk ends mid-line, the
+ * remainder is buffered until the next chunk arrives.
  */
-export {}; // phase 0 — module body intentionally blank
+
+export async function* parseNdjsonStream(
+  source: AsyncIterable<Buffer>,
+): AsyncGenerator<unknown, void, void> {
+  let buffer = "";
+  for await (const chunk of source) {
+    buffer += chunk.toString("utf-8");
+    let nl: number;
+    while ((nl = buffer.indexOf("\n")) !== -1) {
+      const line = buffer.slice(0, nl).trim();
+      buffer = buffer.slice(nl + 1);
+      if (!line) continue;
+      try {
+        yield JSON.parse(line);
+      } catch (err) {
+        // Skip malformed lines; they shouldn't break the stream.
+        // Surface via stderr for debugging.
+        process.stderr.write(
+          `[zj-bridge] ndjson: skipping malformed line: ${line.slice(0, 80)}\n`,
+        );
+      }
+    }
+  }
+  // Flush any trailing buffer that didn't end with a newline.
+  const tail = buffer.trim();
+  if (tail) {
+    try {
+      yield JSON.parse(tail);
+    } catch {
+      process.stderr.write(
+        `[zj-bridge] ndjson: discarding trailing bytes: ${tail.slice(0, 80)}\n`,
+      );
+    }
+  }
+}
