@@ -52,13 +52,18 @@ function parseVersion(stdout: string): string | undefined {
 }
 
 async function whichZellij(): Promise<string> {
-  // Prefer `which zellij`, fall back to `command -v zellij`, then bare name.
-  for (const cmd of ["which", "command"]) {
-    const args = cmd === "which" ? ["zellij"] : ["-v", "zellij"];
-    const res = await spawnSafe(cmd, args, { timeoutMs: 2_000 });
-    if (res.exitCode === 0) {
-      const out = res.stdout.toString("utf-8").trim();
-      if (out) return out.split("\n")[0]!.trim();
+  // Try `command -v zellij` first (POSIX-portable, always available).
+  // `which` isn't installed on some systems (e.g. Termux minimal).
+  for (const cmd of ["command", "which"]) {
+    const args = cmd === "command" ? ["-v", "zellij"] : ["zellij"];
+    try {
+      const res = await spawnSafe(cmd, args, { timeoutMs: 2_000 });
+      if (res.exitCode === 0) {
+        const out = res.stdout.toString("utf-8").trim();
+        if (out) return out.split("\n")[0]!.trim();
+      }
+    } catch {
+      // which not installed — try next
     }
   }
   return "zellij";
