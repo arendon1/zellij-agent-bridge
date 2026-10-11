@@ -1,20 +1,12 @@
 /**
  * src/tools/index.ts — barrel + registration helper.
  *
- * Tools are spread across multiple files (session, pane, tab, input,
- * layout, query, subscribe, multitask) for organization. This file
- * imports them all and exposes `registerAllTools(pi)` for
- * `src/extension.ts` to call.
- *
- * The `zj_doctor` tool is defined here (not in a category file) because
- * it straddles every layer: it reports the probe result, the extension
- * version, and the registered tool count. It is always registered, even
- * when the probe fails — so the user/agent can ask "is zellij set up?"
- * and get a clear answer.
+ * Always registers `zj_doctor` (the diagnostic). When the probe
+ * succeeds, also registers every category's tools via its
+ * `register*Tools` function.
  */
 
 import { Type } from "typebox";
-import { StringEnum } from "@earendil-works/pi-ai";
 import {
   defineTool,
   type ExtensionAPI,
@@ -22,19 +14,17 @@ import {
 import { probeZellij, isZellijAvailable, MIN_ZELLIJ_VERSION, type ProbeState } from "../transport/probe.ts";
 import { log } from "../util/log.ts";
 
-// Forward-declare category registrars — these will be filled in as the
-// respective phase lands.
-declare module "./session.ts"   { export function registerSessionTools(pi: ExtensionAPI): void; }
-declare module "./query.ts"     { export function registerQueryTools(pi: ExtensionAPI): void; }
-declare module "./subscribe.ts" { export function registerSubscribeTool(pi: ExtensionAPI): void; }
-declare module "./pane.ts"      { export function registerPaneTools(pi: ExtensionAPI): void; }
-declare module "./tab.ts"       { export function registerTabTools(pi: ExtensionAPI): void; }
-declare module "./input.ts"     { export function registerInputTools(pi: ExtensionAPI): void; }
-declare module "./layout.ts"    { export function registerLayoutTools(pi: ExtensionAPI): void; }
-declare module "../multitask/farm.ts" { export function registerMultitaskTools(pi: ExtensionAPI): void; }
+import { registerSessionTools } from "./session.ts";
+import { registerQueryTools } from "./query.ts";
+import { registerSubscribeTool } from "./subscribe.ts";
+import { registerPaneTools } from "./pane.ts";
+import { registerTabTools } from "./tab.ts";
+import { registerInputTools } from "./input.ts";
+import { registerLayoutTools } from "./layout.ts";
+import { registerFarmTools } from "../multitask/farm.ts";
+import { registerReducerTools } from "../multitask/reducer.ts";
 
 const DoctorParams = Type.Object({
-  /** When true, re-run the probe (force probe zellij even if cached). */
   reprobe: Type.Optional(Type.Boolean({ description: "Force re-run of the zellij binary probe" })),
 });
 
@@ -59,9 +49,9 @@ const DoctorOutput = Type.Object({
 });
 
 /**
- * zj_doctor — diagnostic tool. Always registered, even when zellij is
- * missing. Use it to confirm setup, force a re-probe, and surface the
- * exact error to the agent when other tools fail.
+ * zj_doctor — diagnostic tool. Always registered, even when zellij
+ * is missing. Use it to confirm setup, force a re-probe, and surface
+ * the exact error to the agent when other tools fail.
  */
 const doctorTool = defineTool({
   name: "zj_doctor",
@@ -91,7 +81,7 @@ const doctorTool = defineTool({
         platform: process.platform,
       },
       tools: {
-        active: _ctx.hasUI ? 0 : 0, // populated by registerAllTools after the fact
+        active: _ctx.hasUI ? 0 : 0,
       },
     };
     const text = state.available
@@ -100,15 +90,12 @@ const doctorTool = defineTool({
     return {
       content: [{ type: "text", text }],
       details: result,
-      structuredContent: result,
     };
   },
 });
 
 export function registerAllTools(pi: ExtensionAPI): void {
   log.debug("registering zellij-agent-bridge tools");
-
-  // Always-on: doctor.
   pi.registerTool(doctorTool);
 
   if (!isZellijAvailable()) {
@@ -116,27 +103,19 @@ export function registerAllTools(pi: ExtensionAPI): void {
     return;
   }
 
-  // The following imports are dynamic so a missing/broken zellij doesn't
-  // crash the entire extension. As each phase lands, the corresponding
-  // call here becomes real.
+  // Each category registers its own tools. Order doesn't matter for
+  // pi, but we register the read tools first so the model sees them
+  // before the mutating ones.
   try {
-    // TODO(phase 2): const { registerSessionTools } = await import("./session.ts");
-    //                registerSessionTools(pi);
-    // TODO(phase 2): const { registerQueryTools } = await import("./query.ts");
-    //                registerQueryTools(pi);
-    // TODO(phase 2): const { registerSubscribeTool } = await import("./subscribe.ts");
-    //                registerSubscribeTool(pi);
-    // TODO(phase 3): const { registerPaneTools } = await import("./pane.ts");
-    //                registerPaneTools(pi);
-    // TODO(phase 3): const { registerTabTools } = await import("./tab.ts");
-    //                registerTabTools(pi);
-    // TODO(phase 3): const { registerInputTools } = await import("./input.ts");
-    //                registerInputTools(pi);
-    // TODO(phase 4): const { registerLayoutTools } = await import("./layout.ts");
-    //                registerLayoutTools(pi);
-    // TODO(phase 5): const { registerMultitaskTools } = await import("../multitask/farm.ts");
-    //                registerMultitaskTools(pi);
-    log.debug("category registrars not yet wired (phase 0 scaffold)");
+    registerSessionTools(pi);
+    registerQueryTools(pi);
+    registerSubscribeTool(pi);
+    registerPaneTools(pi);
+    registerTabTools(pi);
+    registerInputTools(pi);
+    registerLayoutTools(pi);
+    registerFarmTools(pi);
+    registerReducerTools(pi);
   } catch (err) {
     log.error("failed to register category tools", err);
   }

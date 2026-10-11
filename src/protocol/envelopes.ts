@@ -98,6 +98,16 @@ export const env_attach: Envelope<
   },
 };
 
+export const env_renameSession: Envelope<{ name: string }, { name: string }> = {
+  toCli({ name }) {
+    return { args: ["action", "rename-session", name] };
+  },
+  fromCli(result) {
+    if (result.classified) throw result.classified;
+    return { name: result.stdout.trim() };
+  },
+};
+
 // ---------- `zellij action` reads ----------
 
 export const env_listPanes: Envelope<
@@ -464,6 +474,194 @@ export const env_subscribe: Envelope<
       scrollback: last?.scrollback ?? null,
     };
   },
+};
+
+// ---------- Input extras ----------
+
+export const env_writeBytes: Envelope<{ paneId: PaneId; bytes: string[] }, { paneId: PaneId; bytes: number }> = {
+  toCli({ paneId, bytes }) {
+    return { args: ["action", "write", ...bytes, "--pane-id", String(paneId)] };
+  },
+  fromCli(result) {
+    if (result.classified) throw result.classified;
+    return { paneId: "" as PaneId, bytes: 0 };
+  },
+};
+
+// ---------- Pane extras ----------
+
+export const env_focusNext: Envelope<Record<string, never>, { focused: PaneId }> = {
+  toCli() { return { args: ["action", "focus-next-pane"] }; },
+  fromCli(r) { if (r.classified) throw r.classified; return { focused: "" as PaneId }; },
+};
+export const env_focusPrev: Envelope<Record<string, never>, { focused: PaneId }> = {
+  toCli() { return { args: ["action", "focus-previous-pane"] }; },
+  fromCli(r) { if (r.classified) throw r.classified; return { focused: "" as PaneId }; },
+};
+export const env_focusLast: Envelope<Record<string, never>, { focused: PaneId }> = {
+  toCli() { return { args: ["action", "focus-last-pane"] }; },
+  fromCli(r) { if (r.classified) throw r.classified; return { focused: "" as PaneId }; },
+};
+export const env_moveFocusOrTab: Envelope<{ direction: "left" | "right" | "up" | "down" }, { direction: string }> = {
+  toCli({ direction }) { return { args: ["action", "move-focus-or-tab", direction] }; },
+  fromCli(r) { if (r.classified) throw r.classified; return { direction: r.stdout.trim() || "" }; },
+};
+export const env_movePaneBackwards: Envelope<Record<string, never>, { ok: true }> = {
+  toCli() { return { args: ["action", "move-pane-backwards"] }; },
+  fromCli(r) { if (r.classified) throw r.classified; return { ok: true }; },
+};
+export const env_toggleFullscreen: Envelope<Record<string, never>, { ok: true }> = {
+  toCli() { return { args: ["action", "toggle-fullscreen"] }; },
+  fromCli(r) { if (r.classified) throw r.classified; return { ok: true }; },
+};
+export const env_toggleNoUiFullscreen: Envelope<Record<string, never>, { ok: true }> = {
+  toCli() { return { args: ["action", "toggle-no-ui-fullscreen"] }; },
+  fromCli(r) { if (r.classified) throw r.classified; return { ok: true }; },
+};
+export const env_toggleEmbedded: Envelope<{ paneId?: PaneId }, { paneId: PaneId }> = {
+  toCli({ paneId }) {
+    const args = ["action", paneId !== undefined ? "toggle-pane-embed-or-floating-by-pane-id" : "toggle-pane-embed-or-floating"];
+    if (paneId !== undefined) args.push(String(paneId));
+    return { args };
+  },
+  fromCli(r) { if (r.classified) throw r.classified; return { paneId: "" as PaneId }; },
+};
+export const env_toggleFloating: Envelope<Record<string, never>, { visible: boolean }> = {
+  toCli() { return { args: ["action", "toggle-floating-panes"] }; },
+  fromCli(r) { if (r.classified) throw r.classified; return { visible: true }; },
+};
+export const env_showFloating: Envelope<Record<string, never>, { visible: boolean }> = {
+  toCli() { return { args: ["action", "show-floating-panes"] }; },
+  fromCli(r) { if (r.classified) throw r.classified; return { visible: true }; },
+};
+export const env_hideFloating: Envelope<Record<string, never>, { visible: boolean }> = {
+  toCli() { return { args: ["action", "hide-floating-panes"] }; },
+  fromCli(r) { if (r.classified) throw r.classified; return { visible: false }; },
+};
+export const env_floatingVisible: Envelope<Record<string, never>, { visible: boolean }> = {
+  toCli() { return { args: ["action", "are-floating-panes-visible"] }; },
+  fromCli(r) {
+    if (r.classified) throw r.classified;
+    return { visible: r.stdout.trim().toLowerCase() === "true" };
+  },
+};
+export const env_togglePinned: Envelope<{ paneId?: PaneId }, { paneId: PaneId }> = {
+  toCli({ paneId }) {
+    const args = ["action", paneId !== undefined ? "toggle-pane-pinned-by-pane-id" : "toggle-pane-pinned"];
+    if (paneId !== undefined) args.push(String(paneId));
+    return { args };
+  },
+  fromCli(r) { if (r.classified) throw r.classified; return { paneId: "" as PaneId }; },
+};
+export const env_toggleFrames: Envelope<Record<string, never>, { ok: true }> = {
+  toCli() { return { args: ["action", "toggle-pane-frames"] }; },
+  fromCli(r) { if (r.classified) throw r.classified; return { ok: true }; },
+};
+export const env_setBorderless: Envelope<{ paneId: PaneId; borderless: boolean }, { paneId: PaneId; borderless: boolean }> = {
+  toCli({ paneId, borderless }) {
+    return { args: ["action", "set-pane-borderless", borderless ? "true" : "false", "--pane-id", String(paneId)] };
+  },
+  fromCli(r) { if (r.classified) throw r.classified; return { paneId: "" as PaneId, borderless: true }; },
+};
+export const env_setBorderStyle: Envelope<{ paneId: PaneId; style: string }, { paneId: PaneId }> = {
+  toCli({ paneId, style }) {
+    return { args: ["action", "set-pane-border-style", style, "--pane-id", String(paneId)] };
+  },
+  fromCli(r) { if (r.classified) throw r.classified; return { paneId: "" as PaneId }; },
+};
+export const env_setPaneColor: Envelope<{ paneId: PaneId; fg?: string; bg?: string }, { paneId: PaneId }> = {
+  toCli({ paneId, fg, bg }) {
+    const args = ["action", "set-pane-color", "--pane-id", String(paneId)];
+    if (fg) args.push("--fg", fg);
+    if (bg) args.push("--bg", bg);
+    return { args };
+  },
+  fromCli(r) { if (r.classified) throw r.classified; return { paneId: "" as PaneId }; },
+};
+export const env_clearPane: Envelope<{ paneId?: PaneId }, { paneId: PaneId }> = {
+  toCli({ paneId }) {
+    return { args: ["action", "clear", ...(paneId !== undefined ? ["--pane-id", String(paneId)] : [])] };
+  },
+  fromCli(r) { if (r.classified) throw r.classified; return { paneId: (r.stdout.trim() || "") as PaneId }; },
+};
+export const env_breakPane: Envelope<Record<string, never>, { ok: true }> = {
+  toCli() { return { args: ["action", "break-pane"] }; },
+  fromCli(r) { if (r.classified) throw r.classified; return { ok: true }; },
+};
+export const env_scrollAt: Envelope<{ position: number; direction: "up" | "down" }, { ok: true }> = {
+  toCli({ position, direction }) {
+    return { args: ["action", direction === "up" ? "scroll-up-at" : "scroll-down-at", String(position)] };
+  },
+  fromCli(r) { if (r.classified) throw r.classified; return { ok: true }; },
+};
+export const env_scrollToPrompt: Envelope<{ direction: "previous" | "next" }, { ok: true }> = {
+  toCli({ direction }) {
+    return { args: ["action", direction === "previous" ? "scroll-to-previous-prompt" : "scroll-to-next-prompt"] };
+  },
+  fromCli(r) { if (r.classified) throw r.classified; return { ok: true }; },
+};
+export const env_selectCommandAt: Envelope<Record<string, never>, { ok: true }> = {
+  toCli() { return { args: ["action", "select-command-at-scroll-position"] }; },
+  fromCli(r) { if (r.classified) throw r.classified; return { ok: true }; },
+};
+export const env_copyLastOutput: Envelope<Record<string, never>, { output: string }> = {
+  toCli() { return { args: ["action", "copy-last-command-output"] }; },
+  fromCli(r) { if (r.classified) throw r.classified; return { output: r.stdout }; },
+};
+export const env_editScrollback: Envelope<{ paneId?: PaneId; ansi?: boolean }, { paneId: PaneId }> = {
+  toCli({ paneId, ansi }) {
+    const args = ["action", "edit-scrollback"];
+    if (ansi) args.push("--ansi");
+    if (paneId !== undefined) args.push("--pane-id", String(paneId));
+    return { args };
+  },
+  fromCli(r) { if (r.classified) throw r.classified; return { paneId: (r.stdout.trim() || "") as PaneId }; },
+};
+
+// ---------- Tab extras ----------
+
+export const env_gotoNextTab: Envelope<Record<string, never>, { tabId: TabId }> = {
+  toCli() { return { args: ["action", "go-to-next-tab"] }; },
+  fromCli(r) { if (r.classified) throw r.classified; return { tabId: "" as TabId }; },
+};
+export const env_gotoPrevTab: Envelope<Record<string, never>, { tabId: TabId }> = {
+  toCli() { return { args: ["action", "go-to-previous-tab"] }; },
+  fromCli(r) { if (r.classified) throw r.classified; return { tabId: "" as TabId }; },
+};
+export const env_moveTab: Envelope<{ direction: "left" | "right" }, { ok: true }> = {
+  toCli({ direction }) { return { args: ["action", "move-tab", direction] }; },
+  fromCli(r) { if (r.classified) throw r.classified; return { ok: true }; },
+};
+export const env_moveTabTo: Envelope<{ position: number }, { ok: true }> = {
+  toCli({ position }) { return { args: ["action", "move-tab-to-position", String(position)] }; },
+  fromCli(r) { if (r.classified) throw r.classified; return { ok: true }; },
+};
+export const env_undoRenameTab: Envelope<Record<string, never>, { ok: true }> = {
+  toCli() { return { args: ["action", "undo-rename-tab"] }; },
+  fromCli(r) { if (r.classified) throw r.classified; return { ok: true }; },
+};
+export const env_toggleTab: Envelope<Record<string, never>, { ok: true }> = {
+  toCli() { return { args: ["action", "toggle-tab"] }; },
+  fromCli(r) { if (r.classified) throw r.classified; return { ok: true }; },
+};
+
+// ---------- Layout extras ----------
+
+export const env_applyTiledSwap: Envelope<{ name: string }, { applied: string }> = {
+  toCli({ name }) { return { args: ["action", "apply-tiled-swap-layout", name] }; },
+  fromCli(r) { if (r.classified) throw r.classified; return { applied: r.stdout.trim() || "(tiled swap)" }; },
+};
+export const env_applyFloatingSwap: Envelope<{ name: string }, { applied: string }> = {
+  toCli({ name }) { return { args: ["action", "apply-floating-swap-layout", name] }; },
+  fromCli(r) { if (r.classified) throw r.classified; return { applied: r.stdout.trim() || "(floating swap)" }; },
+};
+export const env_nextSwapLayout: Envelope<Record<string, never>, { ok: true }> = {
+  toCli() { return { args: ["action", "next-swap-layout"] }; },
+  fromCli(r) { if (r.classified) throw r.classified; return { ok: true }; },
+};
+export const env_prevSwapLayout: Envelope<Record<string, never>, { ok: true }> = {
+  toCli() { return { args: ["action", "previous-swap-layout"] }; },
+  fromCli(r) { if (r.classified) throw r.classified; return { ok: true }; },
 };
 
 // ---------- Diagnostic ----------
