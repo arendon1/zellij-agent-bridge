@@ -1,0 +1,44 @@
+{
+  "name": "zellij-agent-bridge",
+  "version": "0.0.0-scaffold",
+  "description": "Pi extension that gives agents full programmatic control of the zellij terminal multiplexer — every action, every session command, plus pane streaming — so they can multitask.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/extension.ts",
+  "exports": {
+    ".": "./src/extension.ts"
+  },
+  "files": [
+    "src",
+    "docs",
+    "examples",
+    "README.md",
+    "PLAN.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "zellij",
+    "terminal-multiplexer",
+    "agent",
+    "multitask"
+  ],
+  "pi": {
+    "extensions": [
+      "./src/extension.ts"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-ai": "*",
+    "typebox": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

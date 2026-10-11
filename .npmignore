@@ -1,0 +1,11 @@
+node_modules/
+dist/
+tests/
+*.test.ts
+*.spec.ts
+*.log
+*.tsbuildinfo
+.gitignore
+.npmignore
+tsconfig.json
+coverage/
